@@ -1,101 +1,88 @@
 <?php
-/*
-Plugin Name: Hotlink Protection
-Plugin URI:
-Description: The WP Hotlink Protection plugin is a single step script designed to add an .htaccess file to your WordPress site thereby stopping external web servers from linking directly to your files.
-Author: Planet Zuda
-Author URI: https://planetzuda.com
-Version: 3.3.3
-*/
-
 /**
- * Hotlink Protection core file
+ * Plugin Name: WordPress Automatic Image Hotlink Protection
+ * Plugin URI:  https://thisismyurl.com/downloads/wordpress-automatic-image-hotlink-protection/
+ * Description: Stops other sites from hotlinking your WordPress images. Adds an .htaccess rule that returns 403 for image requests originating from other domains — no bandwidth leakage, no configuration required.
+ * Author:      Christopher Ross
+ * Author URI:  https://thisismyurl.com/
+ * Version:     26.05.0
+ * License:     GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: wordpress-automatic-image-hotlink-protection
  *
- * This file contains all the logic required for the plugin
- *
- * @link		http://wordpress.org/extend/plugins/hotlink-protection/
- *
- * @package		Hotlink Protection
- * @copyright		Copyright ( c ) 2017, Hors Hipsrectors
- * @license		http://www.gnu.org/licenses/old-licenses/gpl-2.0.html GNU General Public License, v2 ( or newer )
- *
- * @since		Hotlink Protection 1.0
+ * @package WordPress_Automatic_Image_Hotlink_Protection
+ * @copyright Copyright (c) 2008, Christopher Ross
  */
 
+if ( ! defined( 'WPINC' ) ) {
+	die;
+}
 
+define( 'THISISMYURL_WAIHP_VERSION',   '26.05.0' );
+define( 'THISISMYURL_WAIHP_MARKER',    'Hotlink Protection' );
+define( 'THISISMYURL_WAIHP_NAMESPACE', 'wordpress-automatic-image-hotlink-protection' );
 
-// on activate
-global $horshipsrectors_hotlink_protection_file;
-global $horshipsrectors_hotlink_protection_file_hlp;
+register_activation_hook( __FILE__, 'thisismyurl_waihp_activate' );
+register_deactivation_hook( __FILE__, 'thisismyurl_waihp_deactivate' );
 
-
-$url = strtolower( get_bloginfo( 'url' ) );
-$url = str_replace( 'https://','',$url );
-$url = str_replace( 'http://','',$url );
-$url = str_replace( 'www.','',$url );
-$horshipsrectors_hotlink_protection_file_hlp = ";
-//updated with stackoverflow solution to the problem as to why this keeps failing
-# Hotlink Protection START #
-RewriteEngine On
-RewriteCond $1 !\.(gif|jpe?g|png)$ [NC]
-
-# Force HTTPS for 
-RewriteCond %{HTTPS} !=on
-RewriteRule  https://%{HTTP_HOST}%{REQUEST_URI} [NC,R=301,L]
-
-# Force HTTP 
-RewriteCond %{HTTPS} =on
-RewriteRule  http://%{HTTP_HOST}%{REQUEST_URI} [NC,R=301,L]
-
-# Remove index.php from URLs
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ /index.php/$1
-# Hotlink Protection END #
-
-";
-
-$horshipsrectors_hotlink_protection_file = ABSPATH . '.htaccess';
-
-// on activate
-function horshipsrectors_wpaihp_active() {
-	global $horshipsrectors_hotlink_protection_file;
-	global $horshipsrectors_hotlink_protection_file_hlp;
-
-	if ( file_exists( $horshipsrectors_hotlink_protection_file ) ) {
-
-		$fh = fopen( $horshipsrectors_hotlink_protection_file, 'r' );
-		$htaccess = fread( $fh, filesize( $horshipsrectors_hotlink_protection_file ) );
-		fclose( $fh );
+/**
+ * On activation: insert hotlink-protection rules into .htaccess.
+ *
+ * Uses WP's insert_with_markers() so the block is idempotent and cleanly
+ * bounded. Does nothing if the server is nginx (no .htaccess support).
+ *
+ * @since 26.05.0
+ */
+function thisismyurl_waihp_activate() {
+	if ( ! function_exists( 'insert_with_markers' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
 	}
 
-	$fh = fopen( $horshipsrectors_hotlink_protection_file, 'w' ) or die( "can't open file" );
-	fwrite( $fh, $htaccess.$horshipsrectors_hotlink_protection_file_hlp );
-	fclose( $fh );
+	$htaccess = get_home_path() . '.htaccess';
+	$rules     = thisismyurl_waihp_rules();
 
+	insert_with_markers( $htaccess, THISISMYURL_WAIHP_MARKER, $rules );
 }
-register_activation_hook( __FILE__, 'horshipsrectors_wpaihp_active' );
 
-
-// on deactivate
-function horshipsrectors_wpaihp_deactivate() {
-	global $horshipsrectors_hotlink_protection_file;
-	global $horshipsrectors_hotlink_protection_file_hlp;
-
-	if ( file_exists( $horshipsrectors_hotlink_protection_file ) ) {
-
-		$fh = fopen( $horshipsrectors_hotlink_protection_file, 'r' );
-		$htaccess = fread( $fh, filesize( $horshipsrectors_hotlink_protection_file ) );
-		fclose( $fh );
-
-		$htaccess = str_replace( $horshipsrectors_hotlink_protection_file_hlp,"",$htaccess );
-
-		$fh = fopen( $horshipsrectors_hotlink_protection_file, 'w' ) or die( "can't open file" );
-		fwrite( $fh, $htaccess );
-		fclose( $fh );
-
+/**
+ * On deactivation: remove hotlink-protection rules from .htaccess.
+ *
+ * Passes an empty array to insert_with_markers() which removes the block.
+ *
+ * @since 26.05.0
+ */
+function thisismyurl_waihp_deactivate() {
+	if ( ! function_exists( 'insert_with_markers' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
 	}
-}
-register_deactivation_hook( __FILE__, 'horshipsrectors_wpaihp_deactivate' );
 
-?>
+	$htaccess = get_home_path() . '.htaccess';
+	insert_with_markers( $htaccess, THISISMYURL_WAIHP_MARKER, array() );
+}
+
+/**
+ * Build the htaccess rewrite rules for hotlink protection.
+ *
+ * Allows requests with an empty Referer (direct navigation, feed readers, etc.)
+ * and requests originating from the site's own domain. All other requests for
+ * image files return 403 Forbidden.
+ *
+ * @since 26.05.0
+ * @return string[] Lines to write between the marker comments.
+ */
+function thisismyurl_waihp_rules() {
+	$site_url = wp_parse_url( home_url() );
+	$domain   = $site_url['host'];
+
+	// Strip www. prefix so both www and non-www originate cleanly.
+	$domain_bare = preg_replace( '/^www\./i', '', $domain );
+
+	return array(
+		'<IfModule mod_rewrite.c>',
+		'  RewriteEngine On',
+		'  RewriteCond %{HTTP_REFERER} !^$',
+		'  RewriteCond %{HTTP_REFERER} !^https?://(www\.)?' . preg_quote( $domain_bare, '/' ) . ' [NC]',
+		'  RewriteRule \.(jpg|jpeg|png|gif|webp|svg|ico)$ - [NC,F,L]',
+		'</IfModule>',
+	);
+}
