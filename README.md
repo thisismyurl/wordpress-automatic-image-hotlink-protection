@@ -39,3 +39,8 @@ GPL-2.0-or-later. See [LICENSE](LICENSE).
 
 **Author:** [Christopher Ross](https://thisismyurl.com) — WordPress specialist since 2007.  
 **Sponsor:** https://github.com/sponsors/thisismyurl
+
+
+---
+*This project follows the [10 Core Pillars](PILLARS.md). Support quality work [here](https://github.com/sponsors/thisismyurl).*
+
