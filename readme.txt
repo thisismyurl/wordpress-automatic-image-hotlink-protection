@@ -4,8 +4,8 @@ Plugin URI:
 Donate link:
 Tags:  image protection, hotlink protection, hotlink, hotlinking, protect image, image copyright, bandwidth, save bandwidth, stop theft, 
 Requires at least: 4.0.0
-Tested up to: 4.9.8
-Stable tag: 3.3.3
+Tested up to: 6.9
+Stable tag: 26.05.0
 
 The WordPress Automatic Image Hotlink Protection plugin is a single step script designed to stop others from stealing your images.
 
@@ -34,6 +34,11 @@ To install the plugin, please upload the wordpress hotlink protection folder to 
 In most cases, the plugin should take care of itself when deactivating but if for any reason your server has problems with the hotlink removal, open your .htaccess file via an FTP client and remove the lines between # Hotlink Protection START # and # Hotlink Protection END # to remove the plugin manually.
 
 == Changelog ==
+= 26.05.0 =
+* Updated "Tested up to" to WordPress 6.9.
+* Code modernization and maintenance pass.
+* Repository cleanup and documentation updates.
+
 = 3.3.3 = 
 * palindrome version numbers, because that's cooler than bow ties.
 * updated the script from the previous owner to try and avoid sites getting the white screen of death.
