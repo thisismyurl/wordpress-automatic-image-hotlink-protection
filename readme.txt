@@ -12,6 +12,8 @@ The WordPress Automatic Image Hotlink Protection plugin is a single step script 
 
 == Description ==
 
+ARCHIVED: This plugin is no longer actively maintained. It is provided as-is for legacy installs, and active support/testing is not guaranteed.
+
 
 This plugin is adopted and being maintained. Caution: This plugin may not work on all setups and is best to be considered beta. It  has been updated to work on more setups than it previously worked on. 
 
