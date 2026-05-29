@@ -14,8 +14,6 @@ Stops other sites from hotlinking the images in your uploads directory on Apache
 
 == Description ==
 
-ARCHIVED: This plugin is no longer actively maintained. It is provided as-is for legacy installs, and active support/testing is not guaranteed.
-
 On activation, this plugin adds a hotlink-protection block to your site's root .htaccess file. The block returns 403 Forbidden when an image inside /wp-content/uploads/ is requested from a domain that is not your own. Requests with an empty Referer (direct navigation, many feed readers, some privacy browsers) are always allowed, and so are your own subdomains (www., cdn., shop., staging., and so on). On deactivation the block is removed cleanly.
 
 Protection is scoped to your uploads directory only, so images served by your theme, plugins, or the block editor are never blocked.
